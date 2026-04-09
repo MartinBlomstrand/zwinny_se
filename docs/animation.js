@@ -21,13 +21,30 @@
   }
   animateOrbs();
 
+  // ── Tagline phrases ──
+  const phrases = [
+    'For the love of creating',
+    'For the love of building',
+    'For the love of solving',
+    'For the love of simplicity',
+    'For the love of speed',
+    'For the love of great products',
+    'For the love of automation',
+    'For the love of AI',
+    'For the love of progress'
+  ];
+  let phraseIndex = 0;
+
   // ── Typewriter ──
   function typeWriter(element, text, speed = 60) {
     return new Promise(resolve => {
       element.classList.add('typing');
-      const cursor = document.createElement('span');
-      cursor.className = 'cursor';
-      element.appendChild(cursor);
+      let cursor = element.querySelector('.cursor');
+      if (!cursor) {
+        cursor = document.createElement('span');
+        cursor.className = 'cursor';
+        element.appendChild(cursor);
+      }
       let i = 0;
       function type() {
         if (i < text.length) {
@@ -35,25 +52,52 @@
           i++;
           setTimeout(type, speed + Math.random() * 40);
         } else {
-          setTimeout(() => {
-            cursor.animate([{ opacity: 1 }, { opacity: 0 }], {
-              duration: 400, fill: 'forwards'
-            }).onfinish = () => cursor.remove();
-            resolve();
-          }, 1200);
+          resolve();
         }
       }
       type();
     });
   }
 
+  function eraseText(element, speed = 30) {
+    return new Promise(resolve => {
+      const cursor = element.querySelector('.cursor');
+      const textNodes = Array.from(element.childNodes).filter(n => n.nodeType === 3);
+      let total = textNodes.reduce((sum, n) => sum + n.textContent.length, 0);
+      function erase() {
+        if (total > 0) {
+          const last = textNodes[textNodes.length - 1];
+          last.textContent = last.textContent.slice(0, -1);
+          if (last.textContent.length === 0) textNodes.pop();
+          total--;
+          setTimeout(erase, speed + Math.random() * 20);
+        } else {
+          resolve();
+        }
+      }
+      erase();
+    });
+  }
+
+  async function rotatePhrases(element) {
+    while (true) {
+      await new Promise(r => setTimeout(r, 3000));
+      await eraseText(element);
+      await new Promise(r => setTimeout(r, 400));
+      phraseIndex = (phraseIndex + 1) % phrases.length;
+      await typeWriter(element, phrases[phraseIndex]);
+    }
+  }
+
   // ── Sequence ──
   async function startSequence() {
+    const tagline = document.getElementById('tagline');
+
     await new Promise(r => setTimeout(r, 300));
     logo.classList.add('visible');
 
     await new Promise(r => setTimeout(r, 1400));
-    await typeWriter(document.getElementById('tagline'), 'The love of creating');
+    await typeWriter(tagline, phrases[0]);
 
     await new Promise(r => setTimeout(r, 300));
     document.getElementById('divider').classList.add('visible');
@@ -63,6 +107,8 @@
 
     await new Promise(r => setTimeout(r, 300));
     document.getElementById('footer').classList.add('visible');
+
+    rotatePhrases(tagline);
   }
   startSequence();
 
