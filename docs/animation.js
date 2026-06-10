@@ -5,7 +5,6 @@
 
   let W = 0, H = 0;
   let particles = [];
-  let mouseX = -9999, mouseY = -9999;
 
   // 'particles' → settled → 'fade' (crossfade to whole logo) → 'whole'
   // click on whole logo bursts it back to 'particles'
@@ -196,23 +195,9 @@
     burst(x, y);
   }
 
-  // sweeping the pointer across the whole logo bursts it;
-  // a resting pointer fires no events, so reassembly completes
-  function pointerMove(x, y) {
-    mouseX = x;
-    mouseY = y;
-    if (mode !== 'particles' && overLogo(x, y)) explode(x, y);
-  }
-
-  document.addEventListener('mousemove', e => pointerMove(e.clientX, e.clientY));
-  document.addEventListener('mouseleave', () => {
-    mouseX = -9999; mouseY = -9999;
-  });
-  document.addEventListener('touchmove', e => {
-    pointerMove(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
-  document.addEventListener('touchend', () => {
-    mouseX = -9999; mouseY = -9999;
+  // only the pointer cursor invites interaction — explosion is click-only
+  document.addEventListener('mousemove', e => {
+    canvas.style.cursor = overLogo(e.clientX, e.clientY) ? 'pointer' : 'default';
   });
 
   function burst(cx, cy) {
